@@ -15,11 +15,12 @@ defmodule XmlTransformBench do
       </ns2:Body>
     </ns2:Envelope>"
   """
-  @simple "<root>test</root>"
+  @simple "<root><document>test</document><version>1.3</version></root>"
 
   bench "xml parsing" do
     IO.puts("-------------xml start------------------")
     {doc, _} = @simple |> :binary.bin_to_list |> :xmerl_scan.string
+
     doc
     |> template
     |> List.to_string
@@ -27,15 +28,18 @@ defmodule XmlTransformBench do
     IO.puts("-------------xml parse done-------------")
   end
 
-  def template(e) do
-    ["<h1>", :xmerl_xs.value_of(:xmerl_xs.select('.', e)), "</h1>"]
+  def template(e = xmlElement([{:name, :root}])) do
+    ["<h1>", :xmerl_xs.xslapply(&template/1, e), "</h1>"]
   end
 
-  def get_text(e) do
-    IO.inspect e
+  def template(e = xmlElement([{:name, :document}])) do
+    ["<h3>", :xmerl_xs.value_of(:xmerl_xs.select('.', e)), "</h2>"]
   end
 
-  # def template(e = %xmlElement{name: 'title'}, etop) do
-    # ["<h3>", value_of(select("title", etop)), " - ", xslapply( fn(a) -> template(a, etop) end, e), "</h3>"]
-  # end
+  def template(e = xmlElement([{:name, :version}])) do
+    ["<h3>", :xmerl_xs.value_of(:xmerl_xs.select('.', e)), "</h3>"]
+  end
+
+
+
 end
