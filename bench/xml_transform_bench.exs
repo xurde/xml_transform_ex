@@ -5,29 +5,30 @@ defmodule XmlTransformBench do
   Record.defrecord :xmlElement, Record.extract(:xmlElement, from_lib: "xmerl/include/xmerl.hrl")
   Record.defrecord :xmlText,    Record.extract(:xmlText, from_lib: "xmerl/include/xmerl.hrl")
 
-  @xls """
-  <xsl:template match="title">
-    <div align="center">
-      <h1><xsl:value-of select="." /></h1>
-    </div>
-  </xsl:template>
+  @sx """
+    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <ns2:Envelope xmlns:ns2="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns3="http://www.iata.org/IATA/EDIST">
+      <ns2:Body>
+        <ns2:Root>
+          test
+        </ns2:Root>
+      </ns2:Body>
+    </ns2:Envelope>"
   """
-
+  @simple "<root>test</root>"
 
   bench "xml parsing" do
-    simple2 = "<Root>test</Root>"
-    simple = "<Root><CoreQuery><Destination><Code>JFK</Code></Destination></CoreQuery></Root>"
-    {doc, _} = simple2 |> :binary.bin_to_list |> :xmerl_scan.string
-
-    template(doc)
-
-
-
-    IO.puts("xml parse done")
+    IO.puts("-------------xml start------------------")
+    {doc, _} = @simple |> :binary.bin_to_list |> :xmerl_scan.string
+    doc
+    |> template
+    |> List.to_string
+    |> IO.inspect
+    IO.puts("-------------xml parse done-------------")
   end
 
   def template(e) do
-    ["<h3>", :xmerl_xs.xslapply( &get_text/1, e), "</h3>"]
+    ["<h1>", :xmerl_xs.value_of(:xmerl_xs.select('.', e)), "</h1>"]
   end
 
   def get_text(e) do
